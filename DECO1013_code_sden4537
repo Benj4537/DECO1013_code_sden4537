@@ -1,0 +1,115 @@
+ # import extention from makecode.microbit.org : neopixel & grove
+def on_gesture_right():
+    global LightNess, LightFlag
+    if LightNess >= 200:
+        LightNess = 0
+    else:
+        LightNess += 50
+    LightFlag = True
+    basic.show_number(ColorNum)
+    action()
+grove.on_gesture(GroveGesture.RIGHT, on_gesture_right)
+
+def action():
+    global ColorFlag, LightFlag
+    if ColorFlag or LightFlag:
+        strip.brightness = LightNess
+        strip.show_color(neopixel.colors(COLORS[ColorNum]))
+        strip.show()
+        ColorFlag = False
+        LightFlag = False
+
+def on_button_pressed_a():
+    global ColorNum, ColorFlag
+    if ColorNum >= 6:
+        ColorNum = 0
+    else:
+        ColorNum += 1
+    ColorFlag = True
+    basic.show_number(ColorNum)
+    action()
+input.on_button_pressed(Button.A, on_button_pressed_a)
+
+def on_gesture_clockwise():
+    global ColorNum, ColorFlag
+    if ColorNum >= 6:
+        ColorNum = 0
+    else:
+        ColorNum += 1
+    ColorFlag = True
+    basic.show_number(ColorNum)
+    action()
+grove.on_gesture(GroveGesture.CLOCKWISE, on_gesture_clockwise)
+
+def on_button_pressed_b():
+    global ColorNum, ColorFlag
+    on_gesture_left()
+    if ColorNum > 0:
+        ColorNum += 0 - 1
+    else:
+        ColorNum = 6
+    ColorFlag = True
+    basic.show_number(ColorNum)
+    action()
+input.on_button_pressed(Button.B, on_button_pressed_b)
+
+def on_gesture_anticlockwise():
+    global ColorNum, ColorFlag
+    if ColorNum > 0:
+        ColorNum += 0 - 1
+    else:
+        ColorNum = 6
+    ColorFlag = True
+    action()
+grove.on_gesture(GroveGesture.ANTICLOCKWISE, on_gesture_anticlockwise)
+
+def on_gesture_left():
+    global LightNess, LightFlag
+    if LightNess > 0:
+        LightNess += 0 - 50
+    else:
+        LightNess = 200
+    LightFlag = True
+    basic.show_number(ColorNum)
+    action()
+ColorFlag = False
+LightFlag = False
+LightNess = 0
+ColorNum = 0
+TickTime = 0
+strip: neopixel.Strip = None
+grove.on_gesture(GroveGesture.LEFT, on_gesture_left)
+LightNess = 100
+COLORS = [NeoPixelColors.RED,
+    NeoPixelColors.BLUE,
+    NeoPixelColors.GREEN,
+    NeoPixelColors.INDIGO,
+    NeoPixelColors.ORANGE,
+    NeoPixelColors.PURPLE,
+    NeoPixelColors.YELLOW]
+ColorNumTop = 6
+led.plot(0, 0)
+strip = neopixel.create(DigitalPin.P2, 30, NeoPixelMode.RGB)
+strip.brightness = LightNess
+strip.show_color(neopixel.colors(COLORS[ColorNum]))
+strip.show()
+
+def on_forever():
+    global LightNess, ColorNum, LightFlag, TickTime
+    TickTime += 1
+    if TickTime > 300:
+        val = pins.analog_read_pin(AnalogPin.P1)
+        LightNess = (val/1024)*200
+        if  LightNess <= 50:
+            LightNess = 300
+        elif LightNess > 50 and LightNess <= 100:
+            LightNess = 100
+        elif LightNess > 100:
+            LightNess = 0
+        else:
+            LightNess = 200
+        LightFlag = True
+        TickTime=0
+        action()
+        basic.show_number(LightNess)
+basic.forever(on_forever)
